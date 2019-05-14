@@ -71,7 +71,7 @@ function runBamazon() {
     }
     ]).then(function(answer) {
         connection.query('SELECT * FROM products WHERE item_id=?', [answer.itemId], function(err, res) {
-            for (var i = 0; i < res.length; i++) {
+            for (let i = 0; i < res.length; i++) {
                 //storing return as variable
                 let item = res[i];
                 if (answer.quantity > res[i].stock_quantity) {
@@ -136,4 +136,3 @@ function purchaseConfirm(newStockQty, item, cost) {
         
 
 //     });
-// };
