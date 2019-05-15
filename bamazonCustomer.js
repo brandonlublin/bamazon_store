@@ -1,8 +1,6 @@
 const inquirer = require('inquirer');
 const mysql = require('mysql');
 
-let cartTotal = 0;
-
 var connection = mysql.createConnection({
     host: "localhost",
     // Your port; if not 3306
@@ -108,7 +106,6 @@ function runBamazon() {
     })
 };
 
-
 function purchaseConfirm(newStockQty, item, cost) {
     
     inquirer
@@ -124,7 +121,6 @@ function purchaseConfirm(newStockQty, item, cost) {
         } else {
         //let the user know that they aren't a complete failure for not wanting to buy something from this awesome store
             console.log('Ok, no worries. Come back when you\'re ready to complete your purchase!');
-            
         }
         let query = 'UPDATE products SET ? WHERE ?';
         //reconnect to DB to update the stock quantity for the item selected
@@ -132,23 +128,8 @@ function purchaseConfirm(newStockQty, item, cost) {
             if (err) {
                 throw new Error(err);
             } else if (res) {
-
                 connection.end();
-
-            }
-        })
-    })
-    
-}
-
-// if (item.stock_quantity === 0) {
-//     console.log('\n\nSorry, We have insufficient quantity of that item');
-// } else {
-//     //running update query to subtract one from the quantity in stock
-//     connection.query('UPDATE products SET stock_quantity = stock_quantity - 1 WHERE item_id = ?', [answer.item], function(err, selectedItem) {
-//         console.log('\nQuantity Remaining of the ' + item.product_name + ': ' + item.stock_quantity + '\n');
-//         cartTotal += item.price;
-//         console.log('Cart Total: $' + cartTotal.toFixed(2));
-        
-
-//     });
+            };
+        });
+    });
+};
