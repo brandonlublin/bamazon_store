@@ -30,7 +30,9 @@ function logInventory() {
     }).then(function(answer) {
         var query = 'SELECT * FROM products;';
         connection.query(query, function(err, selectedItem) {
-            if (answer.itemList = true) {
+            console.log(answer.itemList);
+            
+            if (answer.itemList === true) {
             for (let i = 0; i < selectedItem.length; i++) {
                     //log each item and it's details to the console
                     console.log(
@@ -46,14 +48,14 @@ function logInventory() {
                         selectedItem[i].stock_quantity + '\n\n' 
                     );
                 }
+                runBamazon();
             } else {
                 console.log('No worries, please come back once you need some stuff!');
-                
+                connection.end();
             }
             //run item and quantity prompts
-            runBamazon();
+            
         })
-        connection.end();
     })
 };
 
@@ -70,59 +72,73 @@ function runBamazon() {
         message: 'How many do you need?',
     }
     ]).then(function(answer) {
-        connection.query('SELECT * FROM products WHERE item_id=?', [answer.itemId], function(err, res) {
-            for (let i = 0; i < res.length; i++) {
-                //storing return as variable
-                let item = res[i];
-                if (answer.quantity > res[i].stock_quantity) {
-                    console.log('\n\nSorry, We have insufficient quantity of that item');
-                } else {
-                
-                    //logging each item selected from query in a pretty way
-                    console.log(
-                        'You\'ve selected: \n--------- ' + 
-                        '\nItem #: ' +
-                            item.item_id + '\n' + 
-                        'Product: ' + 
-                            item.product_name + '\n' +
-                        'Item Price: $' + 
-                            item.price.toFixed(2)
-                    );
-                    let newStockQty = res[i].stock_quantity - answer.quantity;
-                    let cost = res[i].price * answer.quantity;
-                    
-                    purchaseConfirm(newStockQty, item, cost)
-                    
+            connection.query('SELECT * FROM products WHERE item_id=?', [answer.itemId], function(err, res) {
+                if (err) {
+                    throw new Error(err)
                 }
-            };
-            connection.end();
-        });
-        
+                for (let i = 0; i < res.length; i++) {
+                    //storing return as variable
+                    let item = res[i];
+                    if (answer.quantity > res[i].stock_quantity) {
+                        console.log('\n\nSorry, We have insufficient quantity of that item');
+                    } else {
+                    
+                        // logging each item selected from query in a pretty way
+                        console.log(
+                            'You\'ve selected: \n--------- ' + 
+                            '\nItem #: ' +
+                                item.item_id + '\n' + 
+                            'Product: ' + 
+                                item.product_name + '\n' +
+                            'Item Price: $' + 
+                                item.price.toFixed(2) + '\n'
+                        );
+                        let newStockQty = res[i].stock_quantity - answer.quantity;
+                        let cost = res[i].price * answer.quantity;
+                
+                        purchaseConfirm(newStockQty, item, cost)
+                        
+                    }
+                };
+            });
     })
     .catch(function(err){
         console.log('error dude');
         
     })
 };
-// runBamazon();
 
 
 function purchaseConfirm(newStockQty, item, cost) {
+    
     inquirer
     .prompt({
         type: 'confirm',
         name: 'validatePurchase',
         message: 'Would you like to complete your purchase??',
     }).then(function(answer) {
-        if (answer.validatePurchase = true) {
-            console.log('Great! your total is $' + cost.toFixed(2) + '.' +
-            '\nThere is now ' + newStockQty + ' left of that item.');
+        if (answer.validatePurchase === true) {
+            console.log('\nGreat! your total is $' + cost.toFixed(2) + '.\n' +
+            '\nThere is now ' + newStockQty + ' left of that item.\n');
             
         } else {
+        //let the user know that they aren't a complete failure for not wanting to buy something from this awesome store
             console.log('Ok, no worries. Come back when you\'re ready to complete your purchase!');
             
         }
+        let query = 'UPDATE products SET ? WHERE ?';
+        //reconnect to DB to update the stock quantity for the item selected
+        connection.query(query, [{stock_quantity: newStockQty}, {item_id: item.item_id}], function(err, res) {
+            if (err) {
+                throw new Error(err);
+            } else if (res) {
+
+                connection.end();
+
+            }
+        })
     })
+    
 }
 
 // if (item.stock_quantity === 0) {
