@@ -100,10 +100,6 @@ function runBamazon() {
                 };
             });
     })
-    .catch(function(err){
-        console.log('error dude');
-        
-    })
 };
 
 function purchaseConfirm(newStockQty, item, cost) {
